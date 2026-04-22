@@ -81,17 +81,19 @@ function toUserMessage(error: unknown): string {
 }
 
 function evidenceBadgeClass(status: RequirementRepoEvidence["evidence_status"]): string {
-  if (status === "found") return "bg-emerald-400/15 text-emerald-300";
-  if (status === "possible") return "bg-amber-400/15 text-amber-300";
-  return "bg-rose-400/15 text-rose-300";
+  if (status === "found") return "bg-emerald-500/15 text-emerald-700 border-emerald-300";
+  if (status === "possible") return "bg-amber-400/20 text-amber-700 border-amber-300";
+  return "bg-rose-500/15 text-rose-700 border-rose-300";
 }
 
 function readinessClass(valid: boolean): string {
-  return valid ? "bg-emerald-400/15 text-emerald-300" : "bg-zinc-400/15 text-zinc-300";
+  return valid
+    ? "bg-emerald-500/15 text-emerald-700 border-emerald-300"
+    : "bg-slate-400/15 text-slate-600 border-slate-300";
 }
 
-function cardClassName(extra?: string): string {
-  return `rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm shadow-[0_20px_60px_-40px_rgba(0,0,0,0.9)] ${extra ?? ""}`;
+function panelClassName(extra?: string): string {
+  return `rounded-[28px] border border-[#e8ddd1] bg-white shadow-[0_8px_18px_rgba(48,25,10,0.06)] ${extra ?? ""}`;
 }
 
 export default function Home() {
@@ -285,123 +287,148 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#05070d] text-slate-100">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(74,222,128,0.08),transparent_30%),radial-gradient(circle_at_95%_0%,rgba(56,189,248,0.08),transparent_28%),linear-gradient(to_bottom,rgba(255,255,255,0.05),transparent_28%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.28)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.24)_1px,transparent_1px)] [background-size:72px_72px]" />
+    <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-[1320px] rounded-[6px] bg-[#f7f2eb] shadow-[0_20px_80px_rgba(30,17,9,0.16)]">
+        <div className="grid grid-cols-1 gap-px bg-[#5f1fb6] px-4 py-2 text-[11px] text-white sm:grid-cols-3 sm:px-8">
+          <p className="text-center">15% Off On Requirement Extraction</p>
+          <p className="text-center">Scan & Save Conformance Time</p>
+          <p className="text-center">Free Local Setup + Gemini Cloud</p>
+        </div>
 
-      <div className="relative z-10">
-        <header className="border-b border-white/10">
-          <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/20 text-cyan-300">
-                <span className="font-mono text-sm font-bold">TS</span>
-              </div>
-              <div>
-                <p className="text-sm font-semibold tracking-[0.08em] text-slate-100">
-                  TRACKSPEC
-                </p>
-                <p className="text-xs text-slate-400">
-                  PRD-Code-App Conformance Dashboard
-                </p>
-              </div>
-            </div>
+        <header className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-8">
+          <div className="text-[28px] leading-none [font-family:var(--font-display)]">
+            TRACKSPEC<span className="text-[#ef5f24]">.</span>
+          </div>
 
-            <nav className="hidden items-center gap-8 text-sm text-slate-300 lg:flex">
-              <span className="border-b border-cyan-300 pb-1 text-cyan-200">Dashboard</span>
-              <span>Requirements</span>
-              <span>Evidence</span>
-              <span>Report</span>
-            </nav>
+          <nav className="hidden items-center gap-7 text-sm font-extrabold text-[#2a1b1a] lg:flex">
+            <span>SETUP</span>
+            <span>REQUIREMENTS</span>
+            <span>EVIDENCE</span>
+            <span>REPORT</span>
+          </nav>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={onRepositoryScan}
-                className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={isExtracting || isScanningRepo || requirements.length === 0}
-              >
-                {isScanningRepo ? "Scanning..." : "Scan Repository Evidence"}
-              </button>
-              <div className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs font-mono text-slate-300">
-                {usedModel ? usedModel : "gemini model"}
-              </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              form="setup-form"
+              className="rounded-full border-2 border-[#1f160f] bg-[#f6df2f] px-4 py-2 text-xs font-extrabold text-[#221810] transition hover:translate-y-[-1px]"
+              disabled={isExtracting}
+            >
+              {isExtracting ? "EXTRACTING..." : "START TRACKING"}
+            </button>
+            <button
+              type="button"
+              onClick={onRepositoryScan}
+              className="rounded-full border-2 border-[#1f160f] bg-white px-4 py-2 text-xs font-extrabold text-[#221810] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isExtracting || isScanningRepo || requirements.length === 0}
+            >
+              {isScanningRepo ? "SCANNING..." : "SCAN REPO"}
+            </button>
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1320px] space-y-5 px-4 py-5 sm:px-6 lg:px-8">
-          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div className={cardClassName("p-4")}>
-              <p className="text-xs uppercase tracking-[0.1em] text-slate-400">Requirements</p>
-              <p className="mt-2 text-3xl font-semibold">{requirements.length}</p>
-              <p className="mt-2 text-xs text-slate-400">Extracted from PRD/OpenSpec</p>
-            </div>
-            <div className={cardClassName("p-4")}>
-              <p className="text-xs uppercase tracking-[0.1em] text-slate-400">Found Signals</p>
-              <p className="mt-2 text-3xl font-semibold text-emerald-300">
-                {evidenceSummary.found}
-              </p>
-              <p className="mt-2 text-xs text-slate-400">Repository evidence status found</p>
-            </div>
-            <div className={cardClassName("p-4")}>
-              <p className="text-xs uppercase tracking-[0.1em] text-slate-400">Partial Signals</p>
-              <p className="mt-2 text-3xl font-semibold text-amber-300">
-                {evidenceSummary.possible}
-              </p>
-              <p className="mt-2 text-xs text-slate-400">Need stronger proof in codebase</p>
-            </div>
-            <div className={cardClassName("p-4")}>
-              <p className="text-xs uppercase tracking-[0.1em] text-slate-400">Files Scanned</p>
-              <p className="mt-2 text-3xl font-semibold">{scannedFileCount}</p>
-              <p className="mt-2 text-xs text-slate-400">Across selected repo folders</p>
-            </div>
-          </section>
+        <main className="space-y-6 px-5 pb-8 sm:px-8">
+          <section className={panelClassName("overflow-hidden p-4 sm:p-6")}>
+            <div className="grid gap-5 lg:grid-cols-12">
+              <div className="lg:col-span-6">
+                <h1 className="text-[42px] leading-[0.95] text-[#2f1714] sm:text-[62px] [font-family:var(--font-display)]">
+                  TRACK THE
+                  <br />
+                  CONFORMANCE
+                </h1>
+                <p className="mt-3 text-[30px] leading-[0.95] text-[#341b18] [font-family:var(--font-display)]">
+                  REQUIREMENTS
+                  <br />
+                  CODE & APP
+                </p>
 
-          <section className="grid gap-5 xl:grid-cols-12">
-            <article className={cardClassName("p-5 sm:p-6 xl:col-span-7")}>
-              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.1em] text-slate-400">
-                    Setup Panel
-                  </p>
-                  <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-                    Conformance Input Console
-                  </h2>
+                <div className="mt-4 flex flex-wrap gap-2 text-xs font-extrabold">
+                  <span className="rounded-full bg-[#13a95d] px-3 py-1 text-white">RELIABLE</span>
+                  <span className="rounded-full bg-[#2da5f2] px-3 py-1 text-white">REPEATABLE</span>
+                  <span className="rounded-full bg-[#ef5f24] px-3 py-1 text-white">MVP READY</span>
                 </div>
-                <div className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs text-slate-300">
-                  Local + Gemini cloud inference
+
+                <p className="mt-4 max-w-md text-sm text-[#5c4a45]">
+                  Paste your PRD/OpenSpec, point to repository, and run conformance
+                  extraction with evidence scan in one workflow.
+                </p>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <div className="rounded-full border border-[#dfd2c7] bg-[#f6f0e8] px-3 py-1 text-xs font-bold text-[#4f3d37]">
+                    Model: {usedModel || "not selected"}
+                  </div>
+                  <div className="rounded-full border border-[#dfd2c7] bg-[#f6f0e8] px-3 py-1 text-xs font-bold text-[#4f3d37]">
+                    Files scanned: {scannedFileCount}
+                  </div>
                 </div>
               </div>
 
-              <form onSubmit={onSubmit} noValidate className="space-y-4">
+              <div className="lg:col-span-6">
+                <div className="h-full rounded-[28px] border border-[#e7dccc] bg-[#f6e15a] p-4">
+                  <div className="grid h-full gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-white/70 p-3">
+                      <p className="text-xs font-bold uppercase text-[#6f5b54]">Requirement Count</p>
+                      <p className="mt-2 text-4xl font-extrabold text-[#2e1b16]">{requirements.length}</p>
+                      <p className="text-xs text-[#6f5b54]">Generated from PRD/OpenSpec</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/70 p-3">
+                      <p className="text-xs font-bold uppercase text-[#6f5b54]">Evidence Signals</p>
+                      <p className="mt-2 text-3xl font-extrabold text-[#2e1b16]">
+                        {evidenceSummary.found} / {repoEvidences.length}
+                      </p>
+                      <p className="text-xs text-[#6f5b54]">Found across repository scan</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/70 p-3 sm:col-span-2">
+                      <p className="text-xs font-bold uppercase text-[#6f5b54]">Current Status</p>
+                      <p className="mt-2 text-sm text-[#4f3d37]">
+                        {statusMessage ||
+                          "Run extraction and repository scan to get latest conformance snapshot."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-5 lg:grid-cols-12">
+            <article className={panelClassName("p-4 sm:p-5 lg:col-span-8")}>
+              <h2 className="text-[32px] leading-[1] text-[#2f1714] [font-family:var(--font-display)]">
+                CONFORMANCE RECIPE
+              </h2>
+              <p className="mt-2 text-sm text-[#6a5650]">
+                Fill all inputs, then run extraction and evidence scan.
+              </p>
+
+              <form id="setup-form" onSubmit={onSubmit} noValidate className="mt-4 space-y-4">
                 <div>
-                  <label htmlFor="prdText" className="text-sm font-medium text-slate-200">
+                  <label htmlFor="prdText" className="text-sm font-extrabold text-[#2c1d19]">
                     PRD/OpenSpec Text
                   </label>
                   <textarea
                     id="prdText"
                     name="prdText"
-                    rows={9}
+                    rows={8}
                     value={values.prdText}
                     onChange={(event) =>
                       setValues((prev) => ({ ...prev, prdText: event.target.value }))
                     }
-                    className="mt-2 w-full rounded-xl border border-white/15 bg-black/25 px-3 py-2 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-200/20"
-                    placeholder="Paste PRD/OpenSpec text here..."
+                    className="mt-2 w-full rounded-2xl border border-[#dfd2c7] bg-[#fffdfa] px-3 py-2 text-sm text-[#2d1d18] outline-none transition placeholder:text-[#9d8c84] focus:border-[#ef5f24] focus:ring-2 focus:ring-[#ef5f24]/20"
+                    placeholder="Paste PRD/OpenSpec text here."
                     aria-invalid={Boolean(submitted && errors.prdText)}
                   />
-                  <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+                  <div className="mt-2 flex items-center justify-between text-xs text-[#806d65]">
                     <span>Minimum 80 characters for stable extraction.</span>
                     <span className="font-mono">{values.prdText.trim().length} chars</span>
                   </div>
                   {submitted && errors.prdText ? (
-                    <p className="mt-1 text-sm text-rose-300">{errors.prdText}</p>
+                    <p className="mt-1 text-sm text-rose-700">{errors.prdText}</p>
                   ) : null}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label htmlFor="repoSource" className="text-sm font-medium text-slate-200">
+                    <label htmlFor="repoSource" className="text-sm font-extrabold text-[#2c1d19]">
                       Repository Path or URL
                     </label>
                     <input
@@ -412,19 +439,19 @@ export default function Home() {
                       onChange={(event) =>
                         setValues((prev) => ({ ...prev, repoSource: event.target.value }))
                       }
-                      className="mt-2 w-full rounded-xl border border-white/15 bg-black/25 px-3 py-2 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-200/20"
+                      className="mt-2 w-full rounded-2xl border border-[#dfd2c7] bg-[#fffdfa] px-3 py-2 text-sm text-[#2d1d18] outline-none transition placeholder:text-[#9d8c84] focus:border-[#ef5f24] focus:ring-2 focus:ring-[#ef5f24]/20"
                       placeholder="D:\\repo\\project or https://github.com/org/repo"
                       aria-invalid={Boolean(submitted && errors.repoSource)}
                     />
                     {submitted && errors.repoSource ? (
-                      <p className="mt-1 text-sm text-rose-300">{errors.repoSource}</p>
+                      <p className="mt-1 text-sm text-rose-700">{errors.repoSource}</p>
                     ) : null}
                   </div>
 
                   <div>
                     <label
                       htmlFor="deployedAppUrl"
-                      className="text-sm font-medium text-slate-200"
+                      className="text-sm font-extrabold text-[#2c1d19]"
                     >
                       Deployed App URL
                     </label>
@@ -439,45 +466,32 @@ export default function Home() {
                           deployedAppUrl: event.target.value,
                         }))
                       }
-                      className="mt-2 w-full rounded-xl border border-white/15 bg-black/25 px-3 py-2 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-200/20"
+                      className="mt-2 w-full rounded-2xl border border-[#dfd2c7] bg-[#fffdfa] px-3 py-2 text-sm text-[#2d1d18] outline-none transition placeholder:text-[#9d8c84] focus:border-[#ef5f24] focus:ring-2 focus:ring-[#ef5f24]/20"
                       placeholder="https://released-app.example.com"
                       aria-invalid={Boolean(submitted && errors.deployedAppUrl)}
                     />
                     {submitted && errors.deployedAppUrl ? (
-                      <p className="mt-1 text-sm text-rose-300">{errors.deployedAppUrl}</p>
+                      <p className="mt-1 text-sm text-rose-700">{errors.deployedAppUrl}</p>
                     ) : null}
                   </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
-                  <p className="text-xs text-slate-400">
-                    Logic and API stay unchanged. This action triggers existing extraction flow.
-                  </p>
-                  <button
-                    type="submit"
-                    className="rounded-xl border border-cyan-300/40 bg-cyan-300/15 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/25 disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={isExtracting}
-                  >
-                    {isExtracting ? "Extracting..." : "Extract Requirements"}
-                  </button>
                 </div>
               </form>
             </article>
 
-            <div className="space-y-4 xl:col-span-5">
-              <article className={cardClassName("p-5")}>
-                <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
-                  Input Readiness
+            <aside className="space-y-4 lg:col-span-4">
+              <article className={panelClassName("p-4")}>
+                <h3 className="text-[26px] leading-[1] text-[#2f1714] [font-family:var(--font-display)]">
+                  DAILY CHECKLIST
                 </h3>
                 <ul className="mt-3 space-y-2">
                   {readiness.map((item) => (
                     <li
                       key={item.label}
-                      className="flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-3 py-2"
+                      className="flex items-center justify-between rounded-2xl border border-[#e2d7cb] bg-[#fbf7f2] px-3 py-2"
                     >
-                      <span className="text-sm text-slate-200">{item.label}</span>
+                      <span className="text-sm font-bold text-[#33211d]">{item.label}</span>
                       <span
-                        className={`rounded-md px-2 py-1 text-xs font-semibold ${readinessClass(
+                        className={`rounded-full border px-2 py-1 text-xs font-extrabold ${readinessClass(
                           item.ready,
                         )}`}
                       >
@@ -488,64 +502,54 @@ export default function Home() {
                 </ul>
               </article>
 
-              <article className={cardClassName("p-5")}>
-                <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-400">
-                  Runtime State
+              <article className={panelClassName("p-4")}>
+                <h3 className="text-[26px] leading-[1] text-[#2f1714] [font-family:var(--font-display)]">
+                  BATCH SUMMARY
                 </h3>
-                <div className="mt-3 space-y-2 text-xs text-slate-300">
-                  <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
-                    <p className="text-slate-400">Repo source</p>
-                    <p className="mt-1 break-all font-mono">
-                      {values.repoSource.trim() || "empty"}
-                    </p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-2xl border border-[#e2d7cb] bg-[#f3f9f4] p-3">
+                    <p className="text-xs font-extrabold text-[#52775e]">FOUND</p>
+                    <p className="text-2xl font-extrabold text-[#27613b]">{evidenceSummary.found}</p>
                   </div>
-                  <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
-                    <p className="text-slate-400">Deployed app URL</p>
-                    <p className="mt-1 break-all font-mono">
-                      {values.deployedAppUrl.trim() || "empty"}
-                    </p>
-                  </div>
-                  <div
-                    className={`rounded-xl border px-3 py-2 ${
-                      extractionError || repoScanError
-                        ? "border-rose-400/25 bg-rose-400/10 text-rose-200"
-                        : statusMessage
-                          ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200"
-                          : "border-white/10 bg-black/20 text-slate-300"
-                    }`}
-                  >
-                    {statusMessage || "System status will appear here after actions run."}
+                  <div className="rounded-2xl border border-[#e2d7cb] bg-[#fff8e9] p-3">
+                    <p className="text-xs font-extrabold text-[#8d6a2a]">POSSIBLE</p>
+                    <p className="text-2xl font-extrabold text-[#8f620c]">{evidenceSummary.possible}</p>
                   </div>
                 </div>
+                <p className="mt-3 break-all text-xs text-[#6f5b54]">
+                  Scanned root: {scannedRoot || "not scanned yet"}
+                </p>
               </article>
-            </div>
+            </aside>
           </section>
 
-          <section className={cardClassName("p-5 sm:p-6")}>
+          <section className={panelClassName("p-4 sm:p-5")}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-lg font-semibold">Extracted Requirements</h3>
-              {usedModel ? (
-                <span className="rounded-lg border border-cyan-300/30 bg-cyan-300/10 px-2 py-1 font-mono text-xs text-cyan-100">
-                  Model: {usedModel}
+              <h3 className="text-[32px] leading-[1] text-[#2f1714] [font-family:var(--font-display)]">
+                REQUIREMENTS WE BAKE DAILY
+              </h3>
+              <div className="flex flex-wrap gap-2 text-xs font-extrabold">
+                <span className="rounded-full bg-[#f0e4da] px-3 py-1 text-[#6b4d44]">REQ {requirements.length}</span>
+                <span className="rounded-full bg-[#ece6fb] px-3 py-1 text-[#5d36ad]">
+                  {usedModel || "model pending"}
                 </span>
-              ) : null}
+              </div>
             </div>
 
             {!hasExtractionAttempt ? (
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-400">
-                Empty state: run requirement extraction to generate 5-8 verifiable
-                requirements.
+              <div className="mt-4 rounded-2xl border border-[#e2d7cb] bg-[#fbf7f2] px-4 py-3 text-sm text-[#6f5b54]">
+                Empty state: run requirement extraction to generate 5-8 verifiable requirements.
               </div>
             ) : null}
 
             {isExtracting ? (
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-400">
+              <div className="mt-4 rounded-2xl border border-[#e2d7cb] bg-[#fbf7f2] px-4 py-3 text-sm text-[#6f5b54]">
                 Loading state: Gemini is extracting requirements from PRD/OpenSpec text...
               </div>
             ) : null}
 
             {extractionError ? (
-              <div className="mt-4 rounded-xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
+              <div className="mt-4 rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 Error state: {extractionError}
               </div>
             ) : null}
@@ -555,10 +559,10 @@ export default function Home() {
             hasExtractionAttempt &&
             requirements.length > 0 ? (
               <>
-                <div className="mt-4 hidden overflow-x-auto rounded-xl border border-white/10 sm:block">
+                <div className="mt-4 hidden overflow-x-auto rounded-2xl border border-[#e2d7cb] sm:block">
                   <table className="min-w-full border-collapse">
                     <thead>
-                      <tr className="bg-white/5 text-left text-xs uppercase tracking-[0.12em] text-slate-400">
+                      <tr className="bg-[#f6f0e8] text-left text-xs uppercase tracking-[0.12em] text-[#6f5b54]">
                         <th className="px-3 py-2">ID</th>
                         <th className="px-3 py-2">Title</th>
                         <th className="px-3 py-2">Description</th>
@@ -569,14 +573,14 @@ export default function Home() {
                       {requirements.map((item, index) => (
                         <tr
                           key={item.id}
-                          className={`border-t border-white/10 align-top text-sm ${
-                            index % 2 === 0 ? "bg-black/10" : "bg-transparent"
+                          className={`border-t border-[#ece2d8] align-top text-sm ${
+                            index % 2 === 0 ? "bg-white" : "bg-[#fffcf8]"
                           }`}
                         >
-                          <td className="px-3 py-2 font-mono text-xs text-cyan-200">{item.id}</td>
-                          <td className="px-3 py-2 font-medium">{item.title}</td>
-                          <td className="px-3 py-2 text-slate-300">{item.description}</td>
-                          <td className="px-3 py-2 text-slate-300">{item.test_hint}</td>
+                          <td className="px-3 py-2 font-mono text-xs text-[#5f1fb6]">{item.id}</td>
+                          <td className="px-3 py-2 font-bold text-[#2f1714]">{item.title}</td>
+                          <td className="px-3 py-2 text-[#5f4d47]">{item.description}</td>
+                          <td className="px-3 py-2 text-[#5f4d47]">{item.test_hint}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -587,12 +591,12 @@ export default function Home() {
                   {requirements.map((item) => (
                     <article
                       key={item.id}
-                      className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm"
+                      className="rounded-2xl border border-[#e2d7cb] bg-[#fffdfa] p-3 text-sm"
                     >
-                      <p className="font-mono text-xs text-cyan-200">{item.id}</p>
-                      <h4 className="mt-1 font-semibold">{item.title}</h4>
-                      <p className="mt-2 text-slate-300">{item.description}</p>
-                      <p className="mt-2 text-xs text-slate-400">Test hint: {item.test_hint}</p>
+                      <p className="font-mono text-xs text-[#5f1fb6]">{item.id}</p>
+                      <h4 className="mt-1 font-bold text-[#2f1714]">{item.title}</h4>
+                      <p className="mt-2 text-[#5f4d47]">{item.description}</p>
+                      <p className="mt-2 text-xs text-[#7b6961]">Test hint: {item.test_hint}</p>
                     </article>
                   ))}
                 </div>
@@ -600,44 +604,27 @@ export default function Home() {
             ) : null}
           </section>
 
-          <section className={cardClassName("p-5 sm:p-6")}>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-lg font-semibold">Repository Evidence</h3>
-              <div className="flex gap-2">
-                <span className="rounded-md border border-emerald-300/30 bg-emerald-400/10 px-2 py-1 text-xs font-semibold text-emerald-300">
-                  {evidenceSummary.found} found
-                </span>
-                <span className="rounded-md border border-amber-300/30 bg-amber-400/10 px-2 py-1 text-xs font-semibold text-amber-300">
-                  {evidenceSummary.possible} possible
-                </span>
-                <span className="rounded-md border border-rose-300/30 bg-rose-400/10 px-2 py-1 text-xs font-semibold text-rose-300">
-                  {evidenceSummary.not_found} not_found
-                </span>
-              </div>
-            </div>
+          <section className={panelClassName("p-4 sm:p-5")}>
+            <h3 className="text-[32px] leading-[1] text-[#2f1714] [font-family:var(--font-display)]">
+              REPOSITORY EVIDENCE COUNTER
+            </h3>
 
             {!hasRepoScanAttempt ? (
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-400">
+              <div className="mt-4 rounded-2xl border border-[#e2d7cb] bg-[#fbf7f2] px-4 py-3 text-sm text-[#6f5b54]">
                 Empty state: run repository evidence scan after extracting requirements.
               </div>
             ) : null}
 
             {isScanningRepo ? (
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-400">
+              <div className="mt-4 rounded-2xl border border-[#e2d7cb] bg-[#fbf7f2] px-4 py-3 text-sm text-[#6f5b54]">
                 Loading state: scanning key repository files for requirement evidence...
               </div>
             ) : null}
 
             {repoScanError ? (
-              <div className="mt-4 rounded-xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
+              <div className="mt-4 rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 Error state: {repoScanError}
               </div>
-            ) : null}
-
-            {scannedRoot ? (
-              <p className="mt-3 break-all font-mono text-xs text-slate-400">
-                Scanned root: {scannedRoot}
-              </p>
             ) : null}
 
             {!isScanningRepo &&
@@ -645,10 +632,10 @@ export default function Home() {
             hasRepoScanAttempt &&
             repoEvidences.length > 0 ? (
               <>
-                <div className="mt-4 hidden overflow-x-auto rounded-xl border border-white/10 sm:block">
+                <div className="mt-4 hidden overflow-x-auto rounded-2xl border border-[#e2d7cb] sm:block">
                   <table className="min-w-full border-collapse">
                     <thead>
-                      <tr className="bg-white/5 text-left text-xs uppercase tracking-[0.12em] text-slate-400">
+                      <tr className="bg-[#f6f0e8] text-left text-xs uppercase tracking-[0.12em] text-[#6f5b54]">
                         <th className="px-3 py-2">Requirement</th>
                         <th className="px-3 py-2">Evidence Status</th>
                         <th className="px-3 py-2">Matched Files</th>
@@ -660,24 +647,24 @@ export default function Home() {
                       {repoEvidences.map((item, index) => (
                         <tr
                           key={item.requirement_id}
-                          className={`border-t border-white/10 align-top text-sm ${
-                            index % 2 === 0 ? "bg-black/10" : "bg-transparent"
+                          className={`border-t border-[#ece2d8] align-top text-sm ${
+                            index % 2 === 0 ? "bg-white" : "bg-[#fffcf8]"
                           }`}
                         >
                           <td className="px-3 py-2">
-                            <p className="font-mono text-xs text-cyan-200">{item.requirement_id}</p>
-                            <p className="mt-1 font-medium">{item.requirement_title}</p>
+                            <p className="font-mono text-xs text-[#5f1fb6]">{item.requirement_id}</p>
+                            <p className="mt-1 font-bold text-[#2f1714]">{item.requirement_title}</p>
                           </td>
                           <td className="px-3 py-2">
                             <span
-                              className={`rounded-md px-2 py-1 text-xs font-semibold ${evidenceBadgeClass(
+                              className={`rounded-full border px-2 py-1 text-xs font-extrabold ${evidenceBadgeClass(
                                 item.evidence_status,
                               )}`}
                             >
                               {item.evidence_status}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-xs text-slate-300">
+                          <td className="px-3 py-2 text-xs text-[#5f4d47]">
                             {item.matched_files.length ? (
                               <div className="space-y-1">
                                 {item.matched_files.map((filePath) => (
@@ -688,8 +675,8 @@ export default function Home() {
                               "No matched files"
                             )}
                           </td>
-                          <td className="px-3 py-2 text-slate-300">{item.reason}</td>
-                          <td className="px-3 py-2 font-mono text-xs text-slate-200">
+                          <td className="px-3 py-2 text-[#5f4d47]">{item.reason}</td>
+                          <td className="px-3 py-2 font-mono text-xs text-[#32201b]">
                             {item.confidence.toFixed(2)}
                           </td>
                         </tr>
@@ -702,19 +689,19 @@ export default function Home() {
                   {repoEvidences.map((item) => (
                     <article
                       key={item.requirement_id}
-                      className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm"
+                      className="rounded-2xl border border-[#e2d7cb] bg-[#fffdfa] p-3 text-sm"
                     >
-                      <p className="font-mono text-xs text-cyan-200">{item.requirement_id}</p>
-                      <h4 className="mt-1 font-semibold">{item.requirement_title}</h4>
+                      <p className="font-mono text-xs text-[#5f1fb6]">{item.requirement_id}</p>
+                      <h4 className="mt-1 font-bold text-[#2f1714]">{item.requirement_title}</h4>
                       <span
-                        className={`mt-2 inline-block rounded-md px-2 py-1 text-xs font-semibold ${evidenceBadgeClass(
+                        className={`mt-2 inline-block rounded-full border px-2 py-1 text-xs font-extrabold ${evidenceBadgeClass(
                           item.evidence_status,
                         )}`}
                       >
                         {item.evidence_status}
                       </span>
-                      <p className="mt-2 text-slate-300">{item.reason}</p>
-                      <p className="mt-2 font-mono text-xs text-slate-400">
+                      <p className="mt-2 text-[#5f4d47]">{item.reason}</p>
+                      <p className="mt-2 font-mono text-xs text-[#7b6961]">
                         Confidence: {item.confidence.toFixed(2)}
                       </p>
                       <div className="mt-2 space-y-1">
@@ -722,13 +709,13 @@ export default function Home() {
                           item.matched_files.map((filePath) => (
                             <p
                               key={`${item.requirement_id}-mobile-${filePath}`}
-                              className="break-all font-mono text-xs text-slate-400"
+                              className="break-all font-mono text-xs text-[#7b6961]"
                             >
                               {filePath}
                             </p>
                           ))
                         ) : (
-                          <p className="text-xs text-slate-400">No matched files</p>
+                          <p className="text-xs text-[#7b6961]">No matched files</p>
                         )}
                       </div>
                     </article>
@@ -741,7 +728,7 @@ export default function Home() {
             !repoScanError &&
             hasRepoScanAttempt &&
             repoEvidences.length === 0 ? (
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-400">
+              <div className="mt-4 rounded-2xl border border-[#e2d7cb] bg-[#fbf7f2] px-4 py-3 text-sm text-[#6f5b54]">
                 Repository scan completed with no evidence records.
               </div>
             ) : null}

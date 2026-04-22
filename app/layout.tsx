@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import { Bungee, JetBrains_Mono, Nunito } from "next/font/google";
 import "./globals.css";
 
-const sans = IBM_Plex_Sans({
+const sans = Nunito({
   variable: "--font-ibm-plex-sans",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "700", "800"],
+  subsets: ["latin"],
+});
+
+const display = Bungee({
+  variable: "--font-display",
+  weight: "400",
   subsets: ["latin"],
 });
 
@@ -27,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sans.variable} ${mono.variable} h-full antialiased`}
+      className={`${sans.variable} ${display.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
