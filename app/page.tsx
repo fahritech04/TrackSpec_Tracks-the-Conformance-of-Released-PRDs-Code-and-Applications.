@@ -93,7 +93,7 @@ function readinessClass(valid: boolean): string {
 }
 
 function panelClassName(extra?: string): string {
-  return `rounded-[28px] border border-[#e8ddd1] bg-white shadow-[0_8px_18px_rgba(48,25,10,0.06)] ${extra ?? ""}`;
+  return `min-w-0 overflow-hidden rounded-[28px] border border-[#e8ddd1] bg-white shadow-[0_8px_18px_rgba(48,25,10,0.06)] ${extra ?? ""}`;
 }
 
 export default function Home() {
@@ -287,8 +287,8 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="mx-auto w-full max-w-[1320px] rounded-[6px] bg-[#f7f2eb] shadow-[0_20px_80px_rgba(30,17,9,0.16)]">
+    <div className="min-h-screen overflow-x-hidden bg-background p-3 sm:p-6">
+      <div className="mx-auto w-full max-w-[1320px] overflow-hidden rounded-[6px] bg-[#f7f2eb] shadow-[0_20px_80px_rgba(30,17,9,0.16)]">
         <div className="grid grid-cols-1 gap-px bg-[#5f1fb6] px-4 py-2 text-[11px] text-white sm:grid-cols-3 sm:px-8">
           <p className="text-center">15% Off On Requirement Extraction</p>
           <p className="text-center">Scan & Save Conformance Time</p>
@@ -328,15 +328,15 @@ export default function Home() {
         </header>
 
         <main className="space-y-6 px-5 pb-8 sm:px-8">
-          <section className={panelClassName("overflow-hidden p-4 sm:p-6")}>
+          <section className={panelClassName("p-4 sm:p-6")}>
             <div className="grid gap-5 lg:grid-cols-12">
-              <div className="lg:col-span-6">
-                <h1 className="text-[42px] leading-[0.95] text-[#2f1714] sm:text-[62px] [font-family:var(--font-display)]">
+              <div className="min-w-0 lg:col-span-6">
+                <h1 className="break-words text-[34px] leading-[0.92] text-[#2f1714] sm:text-[62px] [font-family:var(--font-display)]">
                   TRACK THE
                   <br />
                   CONFORMANCE
                 </h1>
-                <p className="mt-3 text-[30px] leading-[0.95] text-[#341b18] [font-family:var(--font-display)]">
+                <p className="mt-3 break-words text-[24px] leading-[0.95] text-[#341b18] sm:text-[30px] [font-family:var(--font-display)]">
                   REQUIREMENTS
                   <br />
                   CODE & APP
@@ -354,17 +354,17 @@ export default function Home() {
                 </p>
 
                 <div className="mt-5 flex flex-wrap gap-2">
-                  <div className="rounded-full border border-[#dfd2c7] bg-[#f6f0e8] px-3 py-1 text-xs font-bold text-[#4f3d37]">
+                  <div className="max-w-full rounded-full border border-[#dfd2c7] bg-[#f6f0e8] px-3 py-1 text-xs font-bold text-[#4f3d37]">
                     Model: {usedModel || "not selected"}
                   </div>
-                  <div className="rounded-full border border-[#dfd2c7] bg-[#f6f0e8] px-3 py-1 text-xs font-bold text-[#4f3d37]">
+                  <div className="max-w-full rounded-full border border-[#dfd2c7] bg-[#f6f0e8] px-3 py-1 text-xs font-bold text-[#4f3d37]">
                     Files scanned: {scannedFileCount}
                   </div>
                 </div>
               </div>
 
-              <div className="lg:col-span-6">
-                <div className="h-full rounded-[28px] border border-[#e7dccc] bg-[#f6e15a] p-4">
+              <div className="min-w-0 lg:col-span-6">
+                <div className="h-full w-full rounded-[28px] border border-[#e7dccc] bg-[#f6e15a] p-4">
                   <div className="grid h-full gap-3 sm:grid-cols-2">
                     <div className="rounded-2xl bg-white/70 p-3">
                       <p className="text-xs font-bold uppercase text-[#6f5b54]">Requirement Count</p>
@@ -478,7 +478,7 @@ export default function Home() {
               </form>
             </article>
 
-            <aside className="space-y-4 lg:col-span-4">
+            <aside className="min-w-0 space-y-4 lg:col-span-4">
               <article className={panelClassName("p-4")}>
                 <h3 className="text-[26px] leading-[1] text-[#2f1714] [font-family:var(--font-display)]">
                   DAILY CHECKLIST
