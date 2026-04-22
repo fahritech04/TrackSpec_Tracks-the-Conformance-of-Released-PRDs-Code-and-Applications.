@@ -77,19 +77,19 @@ function toUserMessage(error: unknown): string {
     return error.message;
   }
 
-  return "Unknown error while extracting requirements.";
+  return "Unknown error while processing request.";
 }
 
 function evidenceBadgeClass(status: RequirementRepoEvidence["evidence_status"]): string {
-  if (status === "found") {
-    return "bg-match/10 text-match";
-  }
-
-  if (status === "possible") {
-    return "bg-partial/15 text-partial";
-  }
-
+  if (status === "found") return "bg-match/10 text-match";
+  if (status === "possible") return "bg-partial/15 text-partial";
   return "bg-missing/10 text-missing";
+}
+
+function workflowBadgeClass(state: "done" | "active" | "blocked"): string {
+  if (state === "done") return "bg-match/10 text-match";
+  if (state === "active") return "bg-partial/15 text-partial";
+  return "bg-surface-muted text-foreground-muted";
 }
 
 export default function Home() {
@@ -104,7 +104,9 @@ export default function Home() {
   const [isScanningRepo, setIsScanningRepo] = useState(false);
   const [hasRepoScanAttempt, setHasRepoScanAttempt] = useState(false);
   const [repoScanError, setRepoScanError] = useState("");
-  const [repoEvidences, setRepoEvidences] = useState<RequirementRepoEvidence[]>([]);
+  const [repoEvidences, setRepoEvidences] = useState<RequirementRepoEvidence[]>(
+    [],
+  );
   const [scannedRoot, setScannedRoot] = useState("");
   const [scannedFileCount, setScannedFileCount] = useState(0);
 
@@ -123,6 +125,47 @@ export default function Home() {
       { label: "Deployed App URL", ready: deployedReady },
     ],
     [deployedReady, prdReady, repoReady],
+  );
+
+  const evidenceSummary = useMemo(() => {
+    return {
+      found: repoEvidences.filter((item) => item.evidence_status === "found").length,
+      possible: repoEvidences.filter((item) => item.evidence_status === "possible")
+        .length,
+      not_found: repoEvidences.filter((item) => item.evidence_status === "not_found")
+        .length,
+    };
+  }, [repoEvidences]);
+
+  const workflow = useMemo(
+    () => [
+      {
+        label: "Setup Input",
+        state: isValid ? "done" : "active",
+        note: "PRD text, repo source, deployed app URL",
+      },
+      {
+        label: "Requirement Extraction",
+        state:
+          requirements.length > 0
+            ? "done"
+            : isExtracting
+              ? "active"
+              : "blocked",
+        note: "Generate 5-8 verifiable requirements",
+      },
+      {
+        label: "Repository Evidence",
+        state:
+          repoEvidences.length > 0
+            ? "done"
+            : isScanningRepo
+              ? "active"
+              : "blocked",
+        note: "Map requirements to implementation signals",
+      },
+    ] as const,
+    [isExtracting, isScanningRepo, isValid, repoEvidences.length, requirements.length],
   );
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -178,9 +221,7 @@ export default function Home() {
         !("model" in payload) ||
         typeof payload.model !== "string"
       ) {
-        throw new Error(
-          "Invalid requirement extraction response format from server.",
-        );
+        throw new Error("Invalid requirement extraction response format from server.");
       }
 
       const extractionPayload = payload as RequirementExtractionResponse;
@@ -274,210 +315,264 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b bg-surface">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-end justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-20 border-b bg-surface">
+        <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-end justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.18em] text-foreground-muted">
               Engineering Productivity x AI
             </p>
             <h1 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">
-              TrackSpec
+              TrackSpec Conformance Workspace
             </h1>
-            <p className="mt-1 text-sm text-foreground-muted">
-              Setup project input for PRD-Code-App Conformance
-            </p>
           </div>
-          <span className="rounded border bg-surface-muted px-3 py-1 text-xs font-medium text-foreground-muted">
-            Stage 4: Requirement Extraction
-          </span>
+          <div className="rounded-md border bg-surface-muted px-3 py-1.5 font-mono text-xs text-foreground-muted">
+            Stage 5 · Setup + Extraction + Repo Evidence
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-6xl gap-4 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-12 lg:gap-5 lg:px-8">
-        <section className="rounded-lg border bg-surface p-5 sm:p-6 lg:col-span-7">
-          <h2 className="text-lg font-semibold tracking-tight sm:text-xl">
-            Project Setup Input
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-foreground-muted">
-            Provide requirement source, implementation source, and released
-            application target. Then run Gemini requirement extraction.
-          </p>
-
-          <form className="mt-5 space-y-4 sm:mt-6" onSubmit={onSubmit} noValidate>
-            <div>
-              <label
-                htmlFor="prdText"
-                className="text-sm font-medium text-foreground"
-              >
-                PRD/OpenSpec Text
-              </label>
-              <textarea
-                id="prdText"
-                name="prdText"
-                rows={8}
-                value={values.prdText}
-                onChange={(event) =>
-                  setValues((prev) => ({ ...prev, prdText: event.target.value }))
-                }
-                className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-sm leading-6 outline-none transition focus:border-foreground/60 focus:ring-2 focus:ring-foreground/10"
-                placeholder="Paste PRD or OpenSpec text here. Include feature intent and expected behavior."
-                aria-invalid={Boolean(submitted && errors.prdText)}
-              />
-              <div className="mt-2 flex items-center justify-between gap-3 text-xs">
-                <span className="text-foreground-muted">
-                  Minimum 80 characters for stable requirement extraction.
-                </span>
-                <span className="font-mono text-foreground-muted">
-                  {values.prdText.trim().length} chars
-                </span>
+      <main className="mx-auto w-full max-w-[1200px] space-y-4 px-4 py-5 sm:space-y-5 sm:px-6 sm:py-6 lg:px-8">
+        <section className="grid gap-4 lg:grid-cols-12">
+          <article className="rounded-lg border bg-surface p-5 sm:p-6 lg:col-span-8">
+            <p className="font-mono text-xs uppercase tracking-[0.15em] text-foreground-muted">
+              PRD-Code-App Conformance
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              Evidence-first workflow for hackathon demo
+            </h2>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-foreground-muted sm:text-base">
+              Submit PRD/OpenSpec text, repository source, and deployed app URL.
+              TrackSpec extracts verifiable requirements and scans repository evidence
+              to show current conformance confidence.
+            </p>
+            <div className="mt-5 grid gap-2 text-sm sm:grid-cols-3">
+              <div className="rounded-md border bg-surface-muted px-3 py-2">
+                <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-foreground-muted">
+                  Requirements
+                </p>
+                <p className="mt-1 text-lg font-semibold">{requirements.length}</p>
               </div>
-              {submitted && errors.prdText ? (
-                <p className="mt-1 text-sm text-missing">{errors.prdText}</p>
-              ) : null}
+              <div className="rounded-md border bg-surface-muted px-3 py-2">
+                <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-foreground-muted">
+                  Files Scanned
+                </p>
+                <p className="mt-1 text-lg font-semibold">{scannedFileCount}</p>
+              </div>
+              <div className="rounded-md border bg-surface-muted px-3 py-2">
+                <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-foreground-muted">
+                  Repo Signals
+                </p>
+                <p className="mt-1 text-lg font-semibold">
+                  {repoEvidences.length > 0
+                    ? `${evidenceSummary.found} found`
+                    : "No scan yet"}
+                </p>
+              </div>
             </div>
+          </article>
 
-            <div>
-              <label
-                htmlFor="repoSource"
-                className="text-sm font-medium text-foreground"
-              >
-                Repository Path or URL
-              </label>
-              <input
-                id="repoSource"
-                name="repoSource"
-                type="text"
-                value={values.repoSource}
-                onChange={(event) =>
-                  setValues((prev) => ({ ...prev, repoSource: event.target.value }))
-                }
-                className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition focus:border-foreground/60 focus:ring-2 focus:ring-foreground/10"
-                placeholder="Example: D:\\project\\repo or https://github.com/org/repo"
-                aria-invalid={Boolean(submitted && errors.repoSource)}
-              />
-              {submitted && errors.repoSource ? (
-                <p className="mt-1 text-sm text-missing">{errors.repoSource}</p>
-              ) : null}
-            </div>
-
-            <div>
-              <label
-                htmlFor="deployedAppUrl"
-                className="text-sm font-medium text-foreground"
-              >
-                Deployed App URL
-              </label>
-              <input
-                id="deployedAppUrl"
-                name="deployedAppUrl"
-                type="url"
-                value={values.deployedAppUrl}
-                onChange={(event) =>
-                  setValues((prev) => ({
-                    ...prev,
-                    deployedAppUrl: event.target.value,
-                  }))
-                }
-                className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition focus:border-foreground/60 focus:ring-2 focus:ring-foreground/10"
-                placeholder="https://released-app.example.com"
-                aria-invalid={Boolean(submitted && errors.deployedAppUrl)}
-              />
-              {submitted && errors.deployedAppUrl ? (
-                <p className="mt-1 text-sm text-missing">{errors.deployedAppUrl}</p>
-              ) : null}
-            </div>
-
-            <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-foreground-muted">
-                Stage 4 extracts 5-8 verifiable requirements from PRD/OpenSpec.
-              </p>
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-md border bg-foreground px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-foreground-muted"
-                disabled={isExtracting}
-              >
-                {isExtracting ? "Extracting..." : "Extract Requirements"}
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <section className="space-y-4 lg:col-span-5">
-          <article className="rounded-lg border bg-surface p-5 sm:p-6">
+          <article className="rounded-lg border bg-surface p-5 sm:p-6 lg:col-span-4">
             <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground-muted">
-              Input Readiness
+              Workflow Status
             </h3>
             <ul className="mt-3 space-y-2">
-              {readiness.map((item) => (
+              {workflow.map((step, index) => (
                 <li
-                  key={item.label}
-                  className="flex items-center justify-between rounded border bg-surface-muted px-3 py-2"
+                  key={step.label}
+                  className="rounded-md border bg-surface-muted px-3 py-2"
                 >
-                  <span className="text-sm font-medium">{item.label}</span>
-                  <span
-                    className={`rounded px-2 py-1 text-xs font-semibold ${
-                      item.ready
-                        ? "bg-match/10 text-match"
-                        : "bg-partial/15 text-partial"
-                    }`}
-                  >
-                    {readinessLabel(item.ready)}
-                  </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium">
+                      {index + 1}. {step.label}
+                    </p>
+                    <span
+                      className={`rounded px-2 py-1 text-xs font-semibold ${workflowBadgeClass(
+                        step.state,
+                      )}`}
+                    >
+                      {step.state}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-foreground-muted">{step.note}</p>
                 </li>
               ))}
             </ul>
           </article>
-
-          <article className="rounded-lg border bg-surface p-5 sm:p-6">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground-muted">
-              Current Input State
-            </h3>
-            <dl className="mt-3 space-y-3 text-sm">
-              <div className="rounded border bg-surface-muted px-3 py-2">
-                <dt className="font-medium">PRD/OpenSpec Preview</dt>
-                <dd className="mt-1 text-foreground-muted">
-                  {values.prdText.trim()
-                    ? `${values.prdText.trim().slice(0, 120)}${values.prdText.trim().length > 120 ? "..." : ""}`
-                    : "Empty. Paste requirement text to continue."}
-                </dd>
-              </div>
-              <div className="rounded border bg-surface-muted px-3 py-2">
-                <dt className="font-medium">Repository Source</dt>
-                <dd className="mt-1 break-all font-mono text-xs text-foreground-muted">
-                  {values.repoSource.trim() || "Empty"}
-                </dd>
-              </div>
-              <div className="rounded border bg-surface-muted px-3 py-2">
-                <dt className="font-medium">Deployed App URL</dt>
-                <dd className="mt-1 break-all font-mono text-xs text-foreground-muted">
-                  {values.deployedAppUrl.trim() || "Empty"}
-                </dd>
-              </div>
-            </dl>
-          </article>
-
-          <article
-            className={`rounded-lg border p-4 text-sm leading-6 ${
-              extractionError
-                ? "border-missing/30 bg-missing/10 text-missing"
-                : statusMessage
-                  ? "border-match/40 bg-match/10 text-match"
-                  : "bg-surface text-foreground-muted"
-            }`}
-          >
-            {statusMessage ||
-              "No extraction status yet. Fill all fields and run requirement extraction."}
-          </article>
         </section>
 
-        <section className="rounded-lg border bg-surface p-5 sm:p-6 lg:col-span-12">
+        <section className="grid gap-4 lg:grid-cols-12">
+          <article className="rounded-lg border bg-surface p-5 sm:p-6 lg:col-span-8">
+            <h3 className="text-lg font-semibold tracking-tight">Project Setup Input</h3>
+            <p className="mt-2 text-sm leading-6 text-foreground-muted">
+              Keep input explicit and reviewable. This helps judges quickly understand
+              what source of truth is used for conformance analysis.
+            </p>
+
+            <form className="mt-5 space-y-4" onSubmit={onSubmit} noValidate>
+              <div>
+                <label htmlFor="prdText" className="text-sm font-medium">
+                  PRD/OpenSpec Text
+                </label>
+                <textarea
+                  id="prdText"
+                  name="prdText"
+                  rows={8}
+                  value={values.prdText}
+                  onChange={(event) =>
+                    setValues((prev) => ({ ...prev, prdText: event.target.value }))
+                  }
+                  className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-sm leading-6 outline-none transition focus:border-foreground/60 focus:ring-2 focus:ring-foreground/10"
+                  placeholder="Paste requirement source text here."
+                  aria-invalid={Boolean(submitted && errors.prdText)}
+                />
+                <div className="mt-2 flex items-center justify-between text-xs text-foreground-muted">
+                  <span>Minimum 80 characters for stable extraction.</span>
+                  <span className="font-mono">{values.prdText.trim().length} chars</span>
+                </div>
+                {submitted && errors.prdText ? (
+                  <p className="mt-1 text-sm text-missing">{errors.prdText}</p>
+                ) : null}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="repoSource" className="text-sm font-medium">
+                    Repository Path or URL
+                  </label>
+                  <input
+                    id="repoSource"
+                    name="repoSource"
+                    type="text"
+                    value={values.repoSource}
+                    onChange={(event) =>
+                      setValues((prev) => ({ ...prev, repoSource: event.target.value }))
+                    }
+                    className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition focus:border-foreground/60 focus:ring-2 focus:ring-foreground/10"
+                    placeholder="D:\\repo\\project or https://github.com/org/repo"
+                    aria-invalid={Boolean(submitted && errors.repoSource)}
+                  />
+                  {submitted && errors.repoSource ? (
+                    <p className="mt-1 text-sm text-missing">{errors.repoSource}</p>
+                  ) : null}
+                </div>
+
+                <div>
+                  <label htmlFor="deployedAppUrl" className="text-sm font-medium">
+                    Deployed App URL
+                  </label>
+                  <input
+                    id="deployedAppUrl"
+                    name="deployedAppUrl"
+                    type="url"
+                    value={values.deployedAppUrl}
+                    onChange={(event) =>
+                      setValues((prev) => ({
+                        ...prev,
+                        deployedAppUrl: event.target.value,
+                      }))
+                    }
+                    className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition focus:border-foreground/60 focus:ring-2 focus:ring-foreground/10"
+                    placeholder="https://released-app.example.com"
+                    aria-invalid={Boolean(submitted && errors.deployedAppUrl)}
+                  />
+                  {submitted && errors.deployedAppUrl ? (
+                    <p className="mt-1 text-sm text-missing">{errors.deployedAppUrl}</p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-4">
+                <p className="text-xs text-foreground-muted">
+                  Requirement extraction uses Gemini. Repository scan uses deterministic
+                  heuristics.
+                </p>
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-md border bg-foreground px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-foreground-muted"
+                  disabled={isExtracting}
+                >
+                  {isExtracting ? "Extracting..." : "Extract Requirements"}
+                </button>
+              </div>
+            </form>
+          </article>
+
+          <div className="space-y-4 lg:col-span-4">
+            <article className="rounded-lg border bg-surface p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground-muted">
+                Input Readiness
+              </h3>
+              <ul className="mt-3 space-y-2">
+                {readiness.map((item) => (
+                  <li
+                    key={item.label}
+                    className="flex items-center justify-between rounded-md border bg-surface-muted px-3 py-2"
+                  >
+                    <span className="text-sm font-medium">{item.label}</span>
+                    <span
+                      className={`rounded px-2 py-1 text-xs font-semibold ${
+                        item.ready
+                          ? "bg-match/10 text-match"
+                          : "bg-partial/15 text-partial"
+                      }`}
+                    >
+                      {readinessLabel(item.ready)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+
+            <article className="rounded-lg border bg-surface p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground-muted">
+                Current Input State
+              </h3>
+              <dl className="mt-3 space-y-3 text-sm">
+                <div className="rounded-md border bg-surface-muted px-3 py-2">
+                  <dt className="font-medium">PRD/OpenSpec Preview</dt>
+                  <dd className="mt-1 text-foreground-muted">
+                    {values.prdText.trim()
+                      ? `${values.prdText.trim().slice(0, 120)}${values.prdText.trim().length > 120 ? "..." : ""}`
+                      : "Empty"}
+                  </dd>
+                </div>
+                <div className="rounded-md border bg-surface-muted px-3 py-2">
+                  <dt className="font-medium">Repository Source</dt>
+                  <dd className="mt-1 break-all font-mono text-xs text-foreground-muted">
+                    {values.repoSource.trim() || "Empty"}
+                  </dd>
+                </div>
+                <div className="rounded-md border bg-surface-muted px-3 py-2">
+                  <dt className="font-medium">Deployed App URL</dt>
+                  <dd className="mt-1 break-all font-mono text-xs text-foreground-muted">
+                    {values.deployedAppUrl.trim() || "Empty"}
+                  </dd>
+                </div>
+              </dl>
+            </article>
+
+            <article
+              className={`rounded-lg border p-4 text-sm leading-6 ${
+                extractionError || repoScanError
+                  ? "border-missing/30 bg-missing/10 text-missing"
+                  : statusMessage
+                    ? "border-match/30 bg-match/10 text-match"
+                    : "bg-surface text-foreground-muted"
+              }`}
+            >
+              {statusMessage || "System status will appear here after actions run."}
+            </article>
+          </div>
+        </section>
+
+        <section className="rounded-lg border bg-surface p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-semibold tracking-tight sm:text-lg">
               Extracted Requirements
             </h3>
             <div className="flex flex-wrap items-center gap-2">
               {usedModel ? (
-                <span className="rounded border bg-surface-muted px-2 py-1 font-mono text-xs text-foreground-muted">
+                <span className="rounded-md border bg-surface-muted px-2 py-1 font-mono text-xs text-foreground-muted">
                   Model: {usedModel}
                 </span>
               ) : null}
@@ -493,19 +588,20 @@ export default function Home() {
           </div>
 
           {!hasExtractionAttempt ? (
-            <div className="mt-4 rounded border bg-surface-muted px-4 py-3 text-sm text-foreground-muted">
-              Empty state: run requirement extraction to generate 5-8 verifiable requirements.
+            <div className="mt-4 rounded-md border bg-surface-muted px-4 py-3 text-sm text-foreground-muted">
+              Empty state: run requirement extraction to generate 5-8 verifiable
+              requirements.
             </div>
           ) : null}
 
           {isExtracting ? (
-            <div className="mt-4 rounded border bg-surface-muted px-4 py-3 text-sm text-foreground-muted">
+            <div className="mt-4 rounded-md border bg-surface-muted px-4 py-3 text-sm text-foreground-muted">
               Loading state: Gemini is extracting requirements from PRD/OpenSpec text...
             </div>
           ) : null}
 
           {extractionError ? (
-            <div className="mt-4 rounded border border-missing/30 bg-missing/10 px-4 py-3 text-sm text-missing">
+            <div className="mt-4 rounded-md border border-missing/30 bg-missing/10 px-4 py-3 text-sm text-missing">
               Error state: {extractionError}
             </div>
           ) : null}
@@ -515,7 +611,7 @@ export default function Home() {
           hasExtractionAttempt &&
           requirements.length > 0 ? (
             <>
-              <div className="mt-4 hidden overflow-x-auto rounded border sm:block">
+              <div className="mt-4 hidden overflow-x-auto rounded-md border sm:block">
                 <table className="min-w-full border-collapse">
                   <thead>
                     <tr className="bg-surface-muted text-left text-xs uppercase tracking-[0.12em] text-foreground-muted">
@@ -526,8 +622,13 @@ export default function Home() {
                     </tr>
                   </thead>
                   <tbody>
-                    {requirements.map((item) => (
-                      <tr key={item.id} className="border-t align-top text-sm">
+                    {requirements.map((item, index) => (
+                      <tr
+                        key={item.id}
+                        className={`border-t align-top text-sm hover:bg-surface-muted/70 ${
+                          index % 2 === 0 ? "bg-white" : "bg-surface"
+                        }`}
+                      >
                         <td className="px-3 py-2 font-mono text-xs">{item.id}</td>
                         <td className="px-3 py-2 font-medium">{item.title}</td>
                         <td className="px-3 py-2 text-foreground-muted">
@@ -546,7 +647,7 @@ export default function Home() {
                 {requirements.map((item) => (
                   <article
                     key={item.id}
-                    className="rounded border bg-surface-muted p-3 text-sm"
+                    className="rounded-md border bg-surface-muted p-3 text-sm"
                   >
                     <p className="font-mono text-xs text-foreground-muted">{item.id}</p>
                     <h4 className="mt-1 font-semibold">{item.title}</h4>
@@ -561,32 +662,38 @@ export default function Home() {
           ) : null}
         </section>
 
-        <section className="rounded-lg border bg-surface p-5 sm:p-6 lg:col-span-12">
+        <section className="rounded-lg border bg-surface p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-semibold tracking-tight sm:text-lg">
               Repository Evidence
             </h3>
-            {scannedRoot ? (
-              <span className="rounded border bg-surface-muted px-2 py-1 font-mono text-xs text-foreground-muted">
-                {scannedFileCount} files scanned
+            <div className="flex gap-2">
+              <span className="rounded-md border bg-match/10 px-2 py-1 text-xs font-semibold text-match">
+                {evidenceSummary.found} found
               </span>
-            ) : null}
+              <span className="rounded-md border bg-partial/15 px-2 py-1 text-xs font-semibold text-partial">
+                {evidenceSummary.possible} possible
+              </span>
+              <span className="rounded-md border bg-missing/10 px-2 py-1 text-xs font-semibold text-missing">
+                {evidenceSummary.not_found} not_found
+              </span>
+            </div>
           </div>
 
           {!hasRepoScanAttempt ? (
-            <div className="mt-4 rounded border bg-surface-muted px-4 py-3 text-sm text-foreground-muted">
+            <div className="mt-4 rounded-md border bg-surface-muted px-4 py-3 text-sm text-foreground-muted">
               Empty state: run repository evidence scan after extracting requirements.
             </div>
           ) : null}
 
           {isScanningRepo ? (
-            <div className="mt-4 rounded border bg-surface-muted px-4 py-3 text-sm text-foreground-muted">
+            <div className="mt-4 rounded-md border bg-surface-muted px-4 py-3 text-sm text-foreground-muted">
               Loading state: scanning key repository files for requirement evidence...
             </div>
           ) : null}
 
           {repoScanError ? (
-            <div className="mt-4 rounded border border-missing/30 bg-missing/10 px-4 py-3 text-sm text-missing">
+            <div className="mt-4 rounded-md border border-missing/30 bg-missing/10 px-4 py-3 text-sm text-missing">
               Error state: {repoScanError}
             </div>
           ) : null}
@@ -602,7 +709,7 @@ export default function Home() {
           hasRepoScanAttempt &&
           repoEvidences.length > 0 ? (
             <>
-              <div className="mt-4 hidden overflow-x-auto rounded border sm:block">
+              <div className="mt-4 hidden overflow-x-auto rounded-md border sm:block">
                 <table className="min-w-full border-collapse">
                   <thead>
                     <tr className="bg-surface-muted text-left text-xs uppercase tracking-[0.12em] text-foreground-muted">
@@ -614,10 +721,12 @@ export default function Home() {
                     </tr>
                   </thead>
                   <tbody>
-                    {repoEvidences.map((item) => (
+                    {repoEvidences.map((item, index) => (
                       <tr
                         key={item.requirement_id}
-                        className="border-t align-top text-sm"
+                        className={`border-t align-top text-sm hover:bg-surface-muted/70 ${
+                          index % 2 === 0 ? "bg-white" : "bg-surface"
+                        }`}
                       >
                         <td className="px-3 py-2">
                           <p className="font-mono text-xs text-foreground-muted">
@@ -661,7 +770,7 @@ export default function Home() {
                 {repoEvidences.map((item) => (
                   <article
                     key={item.requirement_id}
-                    className="rounded border bg-surface-muted p-3 text-sm"
+                    className="rounded-md border bg-surface-muted p-3 text-sm"
                   >
                     <p className="font-mono text-xs text-foreground-muted">
                       {item.requirement_id}
@@ -702,7 +811,7 @@ export default function Home() {
           !repoScanError &&
           hasRepoScanAttempt &&
           repoEvidences.length === 0 ? (
-            <div className="mt-4 rounded border bg-surface-muted px-4 py-3 text-sm text-foreground-muted">
+            <div className="mt-4 rounded-md border bg-surface-muted px-4 py-3 text-sm text-foreground-muted">
               Repository scan completed with no evidence records.
             </div>
           ) : null}
